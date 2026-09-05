@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>License Management</title>
+    <!-- FontAwesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface-color: #121212;
+            --surface-light: #1e1e1e;
+            --primary: #a855f7;
+            --danger: #ef4444;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --border-color: #27272a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.05);
+        }
+
+        /* Header */
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 25px 20px 15px 20px;
+        }
+        .header-title { display: flex; flex-direction: column; }
+        .header-title h1 { font-size: 26px; font-weight: 800; letter-spacing: 1px; line-height: 1; }
+        .header-title span { font-size: 10px; color: var(--text-muted); letter-spacing: 2.5px; margin-top: 4px; font-weight: 600;}
+        .power-btn {
+            background: var(--surface-light); border: 1px solid var(--border-color); width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--danger); font-size: 16px;
+        }
+
+        /* Tabs */
+        .tab-bar { display: flex; gap: 10px; padding: 0 20px 12px 20px; }
+        .tab-btn {
+            flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--border-color);
+            background: var(--surface-light); color: var(--text-muted); font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-btn:active { transform: scale(0.97); }
+
+        /* Search */
+        .search-container { padding: 10px 20px; }
+        .search-box {
+            background-color: var(--surface-light); border-radius: 14px; display: flex; align-items: center;
+            padding: 14px 18px; border: 1px solid var(--border-color);
+        }
+        .search-box i { color: var(--text-muted); margin-right: 12px; font-size: 16px; }
+        .search-box input {
+            background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 14px; font-weight: 500;
+        }
+
+        /* User List */
+        .users-list {
+            flex: 1; overflow-y: auto; padding: 10px 20px 100px 20px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        /* Custom Scrollbar */
+        .users-list::-webkit-scrollbar { width: 4px; }
+        .users-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .no-users { text-align: center; color: var(--text-muted); margin-top: 60px; font-size: 15px; font-weight: 500;}
+
+        /* User Card */
+        .user-card {
+            background-color: var(--surface-color); border-radius: 16px; padding: 18px;
+            border: 1px solid #2d1842; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 15px; position: relative;
+        }
+        .card-top { display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 16px; }
+        .user-info i { color: var(--primary); font-size: 18px;}
+        .user-info .username { word-break: break-all; }
+        .copy-icon { color: var(--text-muted); cursor: pointer; padding: 5px; font-size: 18px; transition: 0.2s; flex-shrink: 0;}
+        .copy-icon:active { color: var(--primary); transform: scale(0.9); }
+
+        .card-mid { display: flex; justify-content: flex-start; gap: 30px; font-size: 13px; font-weight: 500; color: var(--text-main); flex-wrap: wrap; }
+        .info-chunk { display: flex; align-items: center; gap: 10px; word-break: break-all; }
+        .info-chunk .fa-key { color: #4ade80; }
+        .info-chunk .fa-calendar-alt { color: #9ca3af; }
+
+        .card-actions { display: flex; gap: 12px; margin-top: 5px; }
+        .card-actions button {
+            flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; transition: 0.2s;
+        }
+        .card-actions button:active { transform: scale(0.95); }
+        .edit-btn { background-color: rgba(168, 85, 247, 0.12); color: var(--primary); }
+        .delete-btn { background-color: rgba(239, 68, 68, 0.12); color: var(--danger); }
+
+        /* FAB Button */
+        .fab {
+            position: absolute; bottom: 85px; right: 25px; width: 65px; height: 65px;
+            border-radius: 50%; background-color: var(--primary); color: white;
+            border: none; font-size: 26px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4); cursor: pointer; z-index: 10; transition: 0.2s;
+        }
+        .fab:active { transform: scale(0.9); }
+
+        /* Footer */
+        .footer {
+            position: absolute; bottom: 25px; width: 100%; text-align: center;
+            font-size: 11px; font-weight: 700; letter-spacing: 3px;
+            color: var(--primary); text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+            pointer-events: none;
+        }
+
+        /* Modal / Bottom Sheet */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(3px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 20;
+            display: flex; align-items: flex-end;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+        /* FIX: bottom-sheet is capped to 88% of viewport height and the form area
+           scrolls internally, so the action buttons (Save/Cancel, Generate/Done)
+           can never be pushed off-screen no matter how much content is inside. */
+        .bottom-sheet {
+            background-color: var(--surface-color); width: 100%; border-radius: 28px 28px 0 0;
+            padding: 20px 25px 30px 25px; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
+            display: flex; flex-direction: column; gap: 18px; border-top: 1px solid var(--border-color);
+            max-height: 88vh;
+        }
+        .modal-overlay.show .bottom-sheet { transform: translateY(0); }
+
+        .sheet-body { overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding-right: 2px; }
+        .sheet-body::-webkit-scrollbar { width: 4px; }
+        .sheet-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .handle { width: 45px; height: 5px; background-color: var(--border-color); border-radius: 5px; margin: 0 auto 5px auto; flex-shrink: 0;}
+        .bottom-sheet h2 { text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px; flex-shrink: 0;}
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 1.5px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; right: 18px; color: var(--primary); font-size: 20px; cursor: pointer; transition: 0.2s;}
+        .input-wrapper i:active { transform: rotate(180deg); }
+
+        .form-group input {
+            background-color: var(--surface-light); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 16px; color: white; width: 100%; font-size: 14px; outline: none; font-weight: 500;
+        }
+        .form-group input:focus { border-color: var(--primary); }
+        .form-group input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Styling standard HTML Date Picker to look decent on Dark mode */
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+
+        /* Duration pill buttons (license / access key generation) */
+        .pill-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pill-btn {
+            flex: 1 1 40%; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border-color);
+            background: var(--surface-light); color: var(--text-main); font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .pill-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
+        .pill-btn:active { transform: scale(0.96); }
+
+        .modal-actions { display: flex; gap: 15px; margin-top: 15px; flex-shrink: 0; }
+        .modal-actions button {
+            flex: 1; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; letter-spacing: 1px;
+        }
+        .modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-cancel { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-save { background-color: var(--primary); color: white; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);}
+
+        /* Simple Loader */
+        .loader {
+            display: none; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%;
+            border-top: 3px solid var(--primary); width: 30px; height: 30px;
+            animation: spin 1s linear infinite; margin: 60px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="header-title">
+            <h1 id="headerTitle">USERS</h1>
+            <span id="headerSub">LICENSE MANAGEMENT</span>
+        </div>
+        <button class="power-btn" onclick="location.reload()"><i class="fas fa-power-off"></i></button>
+    </header>
+
+    <div class="tab-bar">
+        <button id="tabUsers" class="tab-btn active">👤 Users</button>
+        <button id="tabBotKeys" class="tab-btn">🤖 Bot Keys</button>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search...">
+        </div>
+    </div>
+
+    <div id="loader" class="loader"></div>
+    <div id="usersList" class="users-list">
+        <div class="no-users">No Users Found</div>
+    </div>
+
+    <button id="addBtn" class="fab"><i class="fas fa-plus"></i></button>
+
+    <div class="footer">PANEL BY DPMODS</div>
+
+    <!-- Add / Edit User Modal -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="bottom-sheet">
+            <div class="handle"></div>
+            <h2 id="modalTitle">ADD USER</h2>
+
+            <div class="sheet-body">
+                <div class="form-group">
+                    <label>USERNAME</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="usernameInput" placeholder="e.g. dpmods">
+                        <i class="fas fa-dice" title="Generate Random" onclick="generateRandomUsername()"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="text" id="passwordInput" placeholder="Password">
+                </div>
+
+                <div class="form-group">
+                    <label>EXPIRY DATE</label>
+                    <input type="date" id="expiryInput">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="cancelBtn" class="btn-cancel">CANCEL</button>
+                <button id="saveBtn" class="btn-save">SAVE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate Bot Access Key Modal -->
+    <div id="keyModalOverlay" class="modal-overlay">
+        <div class="bottom-sheet">
+            <div class="handle"></div>
+            <h2 id="keyModalTitle">GENERATE BOT ACCESS KEY</h2>
+
+            <div class="sheet-body">
+                <div class="form-group" id="durationGroup">
+                    <label>VALID FOR</label>
+                    <div class="pill-group">
+                        <button type="button" class="pill-btn" data-days="1">1 Day</button>
+                        <button type="button" class="pill-btn" data-days="3">3 Days</button>
+                        <button type="button" class="pill-btn" data-days="7">7 Days</button>
+                        <button type="button" class="pill-btn" data-days="30">1 Month</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="keyResultGroup" style="display:none;">
+                    <label>ACCESS KEY (Copy &amp; send this to the bot)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="generatedKeyInput" readonly>
+                        <i class="fas fa-copy" title="Copy Key" onclick="copyGeneratedKey()"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="keyCancelBtn" class="btn-cancel">CANCEL</button>
+                <button id="keyGenerateBtn" class="btn-save">GENERATE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DB_URL = 'https://device-fccef-default-rtdb.firebaseio.com';
+
+    // Existing node for app license users (unchanged)
+    const activeNode = 'panel_auth/users';
+    // New node for Telegram bot access keys
+    const botKeysNode = 'panel_auth/bot_access';
+
+    let usersData = {};
+    let botKeysData = {};
+    let currentEditId = null;
+    let activeTab = 'users'; // 'users' | 'botkeys'
+
+    // DOM Element Selections
+    const headerTitle = document.getElementById('headerTitle');
+    const headerSub = document.getElementById('headerSub');
+    const usersListEl = document.getElementById('usersList');
+    const searchInput = document.getElementById('searchInput');
+    const tabUsersBtn = document.getElementById('tabUsers');
+    const tabBotKeysBtn = document.getElementById('tabBotKeys');
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    const addBtn = document.getElementById('addBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const loader = document.getElementById('loader');
+
+    const usernameInput = document.getElementById('usernameInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const expiryInput = document.getElementById('expiryInput');
+
+    // Bot Access Key modal elements
+    const keyModalOverlay = document.getElementById('keyModalOverlay');
+    const keyModalTitle = document.getElementById('keyModalTitle');
+    const keyCancelBtn = document.getElementById('keyCancelBtn');
+    const keyGenerateBtn = document.getElementById('keyGenerateBtn');
+    const durationGroup = document.getElementById('durationGroup');
+    const keyResultGroup = document.getElementById('keyResultGroup');
+    const generatedKeyInput = document.getElementById('generatedKeyInput');
+    const pillBtns = document.querySelectorAll('.pill-btn');
+
+    let selectedDuration = null;
+    let generatedKeyValue = null;
+
+    // Init App
+    async function init() {
+        showLoader(true);
+        await fetchUsers();
+        await fetchBotKeys();
+        showLoader(false);
+    }
+
+    function showLoader(show) {
+        loader.style.display = show ? 'block' : 'none';
+        if (show) usersListEl.innerHTML = '';
+    }
+
+    function showToast(msg) {
+        const toast = document.createElement('div');
+        toast.innerText = msg;
+        toast.style.cssText = "position:absolute; bottom:160px; left:50%; transform:translateX(-50%); background:var(--primary); color:white; padding:8px 20px; border-radius:20px; z-index:100; font-size:12px; font-weight:600; box-shadow: 0 4px 10px rgba(0,0,0,0.5);";
+        document.querySelector('.app-container').appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
+    // ---------------------------------------------------------------------
+    // TAB SWITCHING
+    // ---------------------------------------------------------------------
+    function switchTab(tab) {
+        activeTab = tab;
+        tabUsersBtn.classList.toggle('active', tab === 'users');
+        tabBotKeysBtn.classList.toggle('active', tab === 'botkeys');
+        searchInput.value = '';
+        if (tab === 'users') {
+            headerTitle.innerText = 'USERS';
+            headerSub.innerText = 'LICENSE MANAGEMENT';
+            searchInput.placeholder = 'Search Users...';
+            renderUsers();
+        } else {
+            headerTitle.innerText = 'BOT ACCESS';
+            headerSub.innerText = 'TELEGRAM BOT KEYS';
+            searchInput.placeholder = 'Search Keys...';
+            renderBotKeys();
+        }
+    }
+    tabUsersBtn.addEventListener('click', () => switchTab('users'));
+    tabBotKeysBtn.addEventListener('click', () => switchTab('botkeys'));
+
+    // ---------------------------------------------------------------------
+    // USERS (license management) - existing logic, unchanged behaviour
+    // ---------------------------------------------------------------------
+    async function fetchUsers() {
+        try {
+            const res = await fetch(`${DB_URL}/${activeNode}.json`);
+            if (res.ok) {
+                const data = await res.json();
+                usersData = data || {};
+            }
+        } catch (e) {
+            console.warn("Error fetching data.", e);
+            usersData = {};
+        }
+        if (activeTab === 'users') renderUsers();
+    }
+
+    function renderUsers() {
+        const filterText = searchInput.value.toLowerCase();
+        usersListEl.innerHTML = '';
+        let hasUsers = false;
+
+        for (const username in usersData) {
+            const user = usersData[username];
+            if (!user) continue;
+
+            if (username.toLowerCase().includes(filterText)) {
+                hasUsers = true;
+
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.innerHTML = `
+                    <div class="card-top">
+                        <div class="user-info">
+                            <i class="fas fa-user"></i>
+                            <span class="username">${username}</span>
+                        </div>
+                        <i class="fas fa-copy copy-icon" onclick="copyDetails('${username}', '${user.password}')" title="Copy Info"></i>
+                    </div>
+                    <div class="card-mid">
+                        <div class="info-chunk">
+                            <i class="fas fa-key"></i>
+                            <span>${user.password || 'N/A'}</span>
+                        </div>
+                        <div class="info-chunk">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>${user.expire_date || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="edit-btn" onclick="openModal('${username}')"><i class="fas fa-pen"></i></button>
+                        <button class="delete-btn" onclick="deleteUser('${username}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                usersListEl.appendChild(card);
+            }
+        }
+
+        if (!hasUsers) {
+            usersListEl.innerHTML = '<div class="no-users">No Users Found</div>';
+        }
+    }
+
+    function openModal(username = null) {
+        currentEditId = username;
+        if (username && usersData[username]) {
+            modalTitle.innerText = 'EDIT USER';
+            usernameInput.value = username;
+            passwordInput.value = usersData[username].password || '';
+            expiryInput.value = usersData[username].expire_date || '';
+        } else {
+            modalTitle.innerText = 'ADD USER';
+            usernameInput.value = '';
+            passwordInput.value = '';
+
+            const d = new Date();
+            d.setMonth(d.getMonth() + 1);
+            expiryInput.value = d.toISOString().split('T')[0];
+        }
+        modalOverlay.classList.add('show');
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove('show');
+        currentEditId = null;
+    }
+
+    function generateRandomUsername() {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        usernameInput.value = result;
+    }
+
+    async function saveUser() {
+        const username = usernameInput.value.trim().replace(/[.#$\[\]]/g, '');
+
+        const userData = {
+            password: passwordInput.value.trim(),
+            expire_date: expiryInput.value
+        };
+
+        if (!username || !userData.password) {
+            alert("Username and password are required.");
+            return;
+        }
+
+        saveBtn.innerText = 'SAVING...';
+        saveBtn.disabled = true;
+
+        try {
+            if (currentEditId && currentEditId !== username) {
+                await fetch(`${DB_URL}/${activeNode}/${currentEditId}.json`, { method: 'DELETE' });
+            }
+
+            const url = `${DB_URL}/${activeNode}/${username}.json`;
+
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+
+            if (res.ok) {
+                closeModal();
+                await fetchUsers();
+            } else {
+                alert("Failed to save data. Check Firebase rules.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network connection error.");
+        } finally {
+            saveBtn.innerText = 'SAVE';
+            saveBtn.disabled = false;
+        }
+    }
+
+    async function deleteUser(username) {
+        if (!confirm("Are you sure you want to permanently delete this user?")) return;
+
+        try {
+            const res = await fetch(`${DB_URL}/${activeNode}/${username}.json`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                await fetchUsers();
+            } else {
+                alert("Failed to delete user.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network connection error.");
+        }
+    }
+
+    function copyDetails(user, pass) {
+        const text = `Username: ${user}\nPassword: ${pass}`;
+        navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+    }
+
+    // ---------------------------------------------------------------------
+    // BOT ACCESS KEYS (new) - keys that unlock the Telegram bot
+    // ---------------------------------------------------------------------
+    async function fetchBotKeys() {
+        try {
+            const res = await fetch(`${DB_URL}/${botKeysNode}.json`);
+            if (res.ok) {
+                const data = await res.json();
+                botKeysData = data || {};
+            }
+        } catch (e) {
+            console.warn("Error fetching bot keys.", e);
+            botKeysData = {};
+        }
+        if (activeTab === 'botkeys') renderBotKeys();
+    }
+
+    function renderBotKeys() {
+        const filterText = searchInput.value.toLowerCase();
+        usersListEl.innerHTML = '';
+        let hasKeys = false;
+
+        for (const key in botKeysData) {
+            const item = botKeysData[key];
+            if (!item) continue;
+
+            if (key.toLowerCase().includes(filterText)) {
+                hasKeys = true;
+
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.innerHTML = `
+                    <div class="card-top">
+                        <div class="user-info">
+                            <i class="fas fa-robot"></i>
+                            <span class="username">${key}</span>
+                        </div>
+                        <i class="fas fa-copy copy-icon" onclick="copyKeyOnly('${key}')" title="Copy Key"></i>
+                    </div>
+                    <div class="card-mid">
+                        <div class="info-chunk">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Expires: ${item.expire_date || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="delete-btn" onclick="deleteBotKey('${key}')"><i class="fas fa-trash"></i> DELETE</button>
+                    </div>
+                `;
+                usersListEl.appendChild(card);
+            }
+        }
+
+        if (!hasKeys) {
+            usersListEl.innerHTML = '<div class="no-users">No Access Keys Found</div>';
+        }
+    }
+
+    function copyKeyOnly(key) {
+        navigator.clipboard.writeText(key).then(() => showToast('Key copied!'));
+    }
+
+    async function deleteBotKey(key) {
+        if (!confirm("Delete this access key? It will no longer work to log into the bot.")) return;
+
+        try {
+            const res = await fetch(`${DB_URL}/${botKeysNode}/${key}.json`, { method: 'DELETE' });
+            if (res.ok) {
+                await fetchBotKeys();
+            } else {
+                alert("Failed to delete key.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network connection error.");
+        }
+    }
+
+    // Random key like AB3D-7K9Q-P2ZT (unambiguous uppercase letters + digits)
+    function generateRandomKey() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        const parts = [];
+        for (let p = 0; p < 3; p++) {
+            let seg = '';
+            for (let i = 0; i < 4; i++) {
+                seg += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            parts.push(seg);
+        }
+        return parts.join('-');
+    }
+
+    function openKeyModal() {
+        selectedDuration = null;
+        generatedKeyValue = null;
+        pillBtns.forEach(b => b.classList.remove('active'));
+        durationGroup.style.display = 'flex';
+        keyResultGroup.style.display = 'none';
+        generatedKeyInput.value = '';
+        keyModalTitle.innerText = 'GENERATE BOT ACCESS KEY';
+        keyGenerateBtn.innerText = 'GENERATE';
+        keyModalOverlay.classList.add('show');
+    }
+
+    function closeKeyModal() {
+        keyModalOverlay.classList.remove('show');
+    }
+
+    pillBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            pillBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedDuration = parseInt(btn.dataset.days, 10);
+        });
+    });
+
+    async function copyGeneratedKey() {
+        if (!generatedKeyInput.value) return;
+        navigator.clipboard.writeText(generatedKeyInput.value).then(() => showToast('Key copied!'));
+    }
+
+    keyGenerateBtn.addEventListener('click', async () => {
+        // Stage 2: key already generated, this click just closes the modal
+        if (generatedKeyValue) {
+            closeKeyModal();
+            await fetchBotKeys();
+            return;
+        }
+
+        // Stage 1: generate a new key
+        if (!selectedDuration) {
+            alert("Please select how many days this key should be valid for.");
+            return;
+        }
+
+        keyGenerateBtn.innerText = 'GENERATING...';
+        keyGenerateBtn.disabled = true;
+
+        try {
+            const key = generateRandomKey();
+            const d = new Date();
+            d.setDate(d.getDate() + selectedDuration);
+            const expire_date = d.toISOString().split('T')[0];
+
+            const res = await fetch(`${DB_URL}/${botKeysNode}/${key}.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expire_date })
+            });
+
+            if (res.ok) {
+                generatedKeyValue = key;
+                generatedKeyInput.value = key;
+                durationGroup.style.display = 'none';
+                keyResultGroup.style.display = 'flex';
+                keyModalTitle.innerText = 'ACCESS KEY GENERATED';
+                keyGenerateBtn.innerText = 'DONE';
+            } else {
+                alert("Failed to generate key. Check Firebase rules.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network connection error.");
+        } finally {
+            keyGenerateBtn.disabled = false;
+        }
+    });
+
+    keyCancelBtn.addEventListener('click', closeKeyModal);
+    keyModalOverlay.addEventListener('click', (e) => {
+        if (e.target === keyModalOverlay) closeKeyModal();
+    });
+
+    // ---------------------------------------------------------------------
+    // Shared UI bindings
+    // ---------------------------------------------------------------------
+    addBtn.addEventListener('click', () => {
+        if (activeTab === 'users') openModal();
+        else openKeyModal();
+    });
+    cancelBtn.addEventListener('click', closeModal);
+    saveBtn.addEventListener('click', saveUser);
+    searchInput.addEventListener('input', () => {
+        if (activeTab === 'users') renderUsers();
+        else renderBotKeys();
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+
+    // Boot App
+    init();
+
+</script>
+</body>
+</html>
